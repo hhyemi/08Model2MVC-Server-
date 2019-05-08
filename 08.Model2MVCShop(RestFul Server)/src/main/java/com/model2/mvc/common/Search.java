@@ -15,6 +15,9 @@ public class Search {
 	//==> 참조
 	private int endRowNum;
 	private int startRowNum;
+	private String priceSort; //가격높은순 낮은순
+	private String shippingCondition; //현재상태체크
+	
 	
 	///Constructor
 	public Search() {
@@ -49,6 +52,22 @@ public class Search {
 		this.searchKeyword = searchKeyword;
 	}
 	
+	public String getPriceSort() {
+		return priceSort;
+	}
+
+	public void setPriceSort(String priceSort) {
+		this.priceSort = priceSort;
+	}
+
+	public String getShippingCondition() {
+		return shippingCondition;
+	}
+
+	public void setShippingCondition(String shippingCondition) {
+		this.shippingCondition = shippingCondition;
+	}
+
 	//==> Select Query 시 ROWNUM 마지막 값 
 	public int getEndRowNum() {
 		return getCurrentPage()*getPageSize();
@@ -60,9 +79,10 @@ public class Search {
 
 	@Override
 	public String toString() {
-		return "Search [currentPage=" + currentPage + ", searchCondition="
-				+ searchCondition + ", searchKeyword=" + searchKeyword
-				+ ", pageSize=" + pageSize + ", endRowNum=" + endRowNum
-				+ ", startRowNum=" + startRowNum + "]";
+		return "Search [currentPage=" + currentPage + ", searchCondition=" + searchCondition + ", searchKeyword="
+				+ searchKeyword + ", pageSize=" + pageSize + ", endRowNum=" + endRowNum + ", startRowNum=" + startRowNum
+				+ ", priceSort=" + priceSort + ", shippingCondition=" + shippingCondition + "]";
 	}
+
+
 }

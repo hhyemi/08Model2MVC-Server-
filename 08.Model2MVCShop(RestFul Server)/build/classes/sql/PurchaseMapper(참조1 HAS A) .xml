@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="PurchaseMapper">
+
+	<resultMap id="purchaseSelectMap" type="purchase">
+	
+		<result property="tranNo" column="tran_no" jdbcType="NUMERIC"/>
+		<result property="paymentOption" column="payment_option" jdbcType="CHAR"/>
+		<result property="receiverName" column="receiver_name" jdbcType="VARCHAR"/>
+		<result property="receiverPhone" column="receiver_phone" jdbcType="VARCHAR"/>
+		<result property="dlvyAddr" column="dlvy_addr" jdbcType="VARCHAR"/>
+		<result property="dlvyRequest" column="dlvy_request" jdbcType="VARCHAR"/>
+		<result property="tranCode" column="tran_status_code" jdbcType="CHAR"/>
+		<result property="orderDate" column="order_date" jdbcType="DATE"/>
+		<result property="dlvyDate" column="dlvy_date" jdbcType="VARCHAR"/>
+		
+		<association property="purchaseProd"  javaType="product">
+			<id property="prodNo" column="prod_no" jdbcType="NUMERIC"/>
+			<result property="prodName" column="prod_name" jdbcType="VARCHAR"/>
+			<result property="prodDetail" column="prod_detail" jdbcType="VARCHAR"/>
+			<result property="manuDate" column="manufacture_day" jdbcType="VARCHAR"/>
+			<result property="price" column="price" jdbcType="NUMERIC"/>
+			<result property="fileName" column="image_file" jdbcType="VARCHAR"/>
+			<result property="regDate" column="prod_reg_date" jdbcType="DATE"/>
+			<result property="prodTranCode" column="TRAN_STATUS_CODE" jdbcType="VARCHAR"/>
+		</association>
+		
+		<association property="buyer"  javaType="user">
+			<id property="userId" column="buyer_id" jdbcType="VARCHAR"/>
+			<result property="userName" column="user_name" jdbcType="VARCHAR"/>
+			<result property="password" column="password" jdbcType="VARCHAR"/>
+			<result property="role" column="role" jdbcType="VARCHAR"/>
+			<result property="ssn" column="ssn" jdbcType="VARCHAR"/>
+			<result property="phone" column="cell_phone" jdbcType="VARCHAR"/>
+			<result property="addr" column="addr" jdbcType="VARCHAR"/>
+			<result property="email" column="email" jdbcType="VARCHAR"/>
+			<result property="regDate" column="user_reg_date" jdbcType="DATE"/>
+		</association>
+	</resultMap>
+	
+	<select id="findPurchase" parameterType="purchase" resultMap="purchaseSelectMap">
+		select
+		t.TRAN_NO tranNo,
+		<!-- t.prod_no prodNo, -->
+		t.buyer_id buyer,
+		t.PAYMENT_OPTION paymentOption,
+		t.RECEIVER_NAME receiverName,
+		t.RECEIVER_PHONE receiverPhone,
+		t.DLVY_ADDR dlvyAddr,
+		t.DLVY_REQUEST dlvyRequest,
+		t.TRAN_STATUS_CODE tranCode,
+		t.ORDER_DATE orderDate,
+		t.DLVY_DATE dlvyDate,
+		
+		p.PROD_NO prod_no,
+		p.PROD_NAME prod_name,
+		p.PROD_DETAIL prod_detail,
+		p.MANUFACTURE_DAY manufacture_day,
+		p.PRICE price,
+		p.IMAGE_FILE image_file,
+		p.REG_DATE prod_reg_date,
+		t.TRAN_STATUS_CODE TRAN_STATUS_CODE,
+		
+		u.USER_ID buyer_id,
+		u.USER_NAME userName,
+		u.PASSWORD password,
+		u.ROLE role,
+		u.SSN ssn,
+		u.CELL_PHONE cell_phone,
+		u.ADDR addr,
+		u.EMAIL email,
+		u.REG_DATE user_reg_date
+				
+		from TRANSACTION t, PRODUCT p, USERS u
+		where t.prod_no = p.prod_no AND t.buyer_id = u.user_id
+		<if test="tranNo != null">AND t.TRAN_NO=#{tranNo}</if>
+	</select>
+	
+</mapper>

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ProductMapper">
+
+
+	<resultMap id="productSelectMap" type="product">
+		<result property="prodNo" column="PROD_NO" jdbcType="INTEGER" />
+		<result property="prodName" column="PROD_NAME" jdbcType="VARCHAR" />
+		<result property="prodDetail" column="PROD_DETAIL" jdbcType="VARCHAR" />
+		<result property="manuDate" column="MANUFACTURE_DAY" jdbcType="VARCHAR" />
+		<result property="price" column="PRICE" jdbcType="INTEGER" />
+		<result property="fileName" column="IMAGE_FILE" jdbcType="VARCHAR" />
+		<result property="regDate" column="REG_DATE" jdbcType="DATE" />
+		<result property="proTranCode" column="STATUS_CODE" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<!-- SQL : INSERT -->
+	<insert id="addProduct" parameterType="product">
+		INSERT
+		INTO product(
+		PROD_NO , PROD_NAME , PROD_DETAIL , MANUFACTURE_DAY , PRICE,
+		IMAGE_FILE,REG_DATE)
+		VALUES (SEQ_PRODUCT_PROD_NO.NEXTVAL ,
+		#{prodName:VARCHAR} , #{prodDetail:VARCHAR} ,#{manuDate:VARCHAR} ,
+		#{price:INTEGER} , #{fileName:VARCHAR} , SYSDATE )
+	</insert>
+
+	<!-- SQL : SELECT ONE -->
+	<select id="getProduct" parameterType="string" resultMap="productSelectMap">
+		SELECT
+		PROD_NO , PROD_NAME , PROD_DETAIL , MANUFACTURE_DAY , PRICE,
+		IMAGE_FILE,REG_DATE
+		FROM product
+		WHERE PROD_NO = #{value}
+	</select>
+
+	<!-- SQL : UPDATE -->
+	<update id="updateProduct" parameterType="product">
+		UPDATE product
+		<set>
+			PROD_NAME = #{prodName} ,
+			PROD_DETAIL = #{prodDetail},
+			MANUFACTURE_DAY = #{manuDate} ,
+			PRICE =#{price},
+			IMAGE_FILE
+			=#{fileName}
+		</set>
+		WHERE PROD_NO = #{prodNo}
+	</update>
+
+	<!-- SQL : SELECT LIST -->
+	<select id="getProductList" parameterType="search" resultMap="productSelectMap">
+		SELECT *
+		FROM ( SELECT inner_table.* , ROWNUM AS row_seq
+		FROM (SELECT
+		p.PROD_NO,p.PROD_NAME, p.PROD_DETAIL, p.MANUFACTURE_DAY,
+		p.PRICE,p.IMAGE_FILE,p.REG_DATE,NVL(TRAN_STATUS_CODE,'0') STATUS_CODE
+		FROM PRODUCT p,TRANSACTION t
+		<where>
+			<if test="searchCondition != null">
+				<if test="searchCondition == 0 and searchKeyword !='' ">
+					p.PROD_NO = #{searchKeyword} 
+				</if>
+				<if test="searchCondition == 1 and searchKeyword !='' ">
+					p.PROD_NAME LIKE #{searchKeyword} 
+				</if>
+				<if test="searchCondition == 2 and searchKeyword !='' ">
+					p.PRICE= #{searchKeyword} 
+				</if>
+			</if>
+				<if test="shippingCondition != null">
+					<if test="shippingCondition == 0 and shippingCondition !='' ">
+						AND t.TRAN_STATUS_CODE is NULL 
+					</if>
+					<if test="shippingCondition == 1 and shippingCondition !='' ">
+						AND t.TRAN_STATUS_CODE in (#{shippingCondition},1) 
+					</if>
+					<if test="shippingCondition == 2 and shippingCondition !='' ">
+						AND t.TRAN_STATUS_CODE in (#{shippingCondition},2) 
+					</if>
+					<if test="shippingCondition == 3 and shippingCondition !='' ">
+						AND t.TRAN_STATUS_CODE in (#{shippingCondition},3) 
+					</if>
+				</if>
+
+				<if test="priceSort =='high'">
+					AND p.prod_no IN t.prod_no(+) ORDER BY p.PRICE DESC
+				</if>
+				<if test="priceSort =='low'">
+					AND p.prod_no IN t.prod_no(+) ORDER BY p.PRICE ASC
+				</if>
+				<if test="priceSort !='high' and priceSort !='low' ">
+					AND p.prod_no IN t.prod_no(+) ORDER BY p.PROD_NO
+				</if>
+
+		</where>
+
+		) inner_table
+		WHERE ROWNUM &lt;= #{endRowNum} )
+		WHERE row_seq BETWEEN
+		#{startRowNum} AND
+		#{endRowNum}
+	</select>
+	<!-- 위 두번째 subQuery 의 WHERE ROWNUM &lt;= #{endRowNum} ) 는 WHERE ROWNUM <= 
+		#{endRowNum} ) 의미이며.. < 는 keyword 로 &lt; 를 사용. <![CDATA[ ~~~ ]]> 를 이용하여 아래와 
+		같이 사용 할 수 있다. CDATA ==> Character Data 의 의미 Java 에서 \n 같은 특수문자 처리 WHERE ROWNUM 
+		<![CDATA[ <=]]> #{endRowNum} ) -->
+
+	<!-- SQL : SELECT ROW Count -->
+	<select id="getTotalCount" parameterType="search" resultType="int">
+		SELECT COUNT(*)
+		FROM( SELECT p.PROD_NO,p.PROD_NAME
+		FROM product p,TRANSACTION t
+			<where>
+				<if test="searchCondition != null">
+					<if test="searchCondition == 0 and searchKeyword !='' ">
+						p.PROD_NO = #{searchKeyword} 
+					</if>
+					<if test="searchCondition == 1 and searchKeyword !='' ">
+						p.PROD_NAME LIKE #{searchKeyword} 
+					</if>
+					<if test="searchCondition == 2 and searchKeyword !='' ">
+						p.PRICE= #{searchKeyword} 
+					</if>
+
+					<if test="shippingCondition != null">
+						<if test="shippingCondition == 0 and shippingCondition !='' ">
+							AND t.TRAN_STATUS_CODE is NULL 
+						</if>
+						<if test="shippingCondition == 1 and shippingCondition !='' ">
+							AND t.TRAN_STATUS_CODE in (#{shippingCondition},1) 
+						</if>
+						<if test="shippingCondition == 2 and shippingCondition !='' ">
+							AND t.TRAN_STATUS_CODE in (#{shippingCondition},2) 
+						</if>
+						<if test="shippingCondition == 3 and shippingCondition !='' ">
+							AND t.TRAN_STATUS_CODE in (#{shippingCondition},3) 
+						</if>
+					</if>
+
+					<if test="priceSort =='high'">
+						AND p.prod_no IN t.prod_no(+) ORDER BY p.PRICE DESC
+					</if>
+					<if test="priceSort =='low'">
+						AND p.prod_no IN t.prod_no(+) ORDER BY p.PRICE ASC
+					</if>
+					<if test="priceSort !='high' and priceSort !='low' ">
+						AND p.prod_no IN t.prod_no(+) ORDER BY p.PROD_NO
+					</if>
+
+				</if>
+			</where>
+		) countTable
+	</select>
+
+</mapper>
